@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sarf Master Pro Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Manjari:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #004d40; --secondary: #00796b; --accent: #ffc107; 
+            --danger: #d32f2f; --bg: #f4f7f6; --purple: #673ab7; --card-bg: #ffffff; --text: #333;
+        }
+        
+        body.dark-mode {
+            --bg: #121212; --card-bg: #1e1e1e; --text: #e0e0e0; --primary: #80cbc4;
+        }
+
+        body { font-family: 'Amiri', 'Manjari', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; overflow-x: hidden; }
+
+        .sidebar { 
+            background: var(--card-bg); padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            position: sticky; top: 0; z-index: 1000; border-bottom: 3px solid var(--primary);
+        }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; }
+        .mode-toggle { cursor: pointer; padding: 5px 10px; border-radius: 20px; border: 1px solid #ddd; font-size: 0.8rem; }
+
+        .input-group { display: flex; gap: 8px; margin: 10px 0; }
+        input, select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; background: var(--card-bg); color: var(--text); }
+        button.main-btn { width: 100%; padding: 12px; border-radius: 8px; background: var(--primary); color: #fff; border: none; font-weight: bold; }
+
+        .content-area { padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+        .card { background: var(--card-bg); border-radius: 12px; overflow: hidden; display: none; border-right: 5px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(0,0,0,0.05); }
+        .card-header h3 { margin: 0; font-size: 1.1rem; color: var(--primary); }
+        .copy-btn { font-size: 0.8rem; color: var(--secondary); cursor: pointer; border: 1px solid var(--secondary); padding: 2px 8px; border-radius: 4px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 10px 5px; border-bottom: 1px solid rgba(0,0,0,0.05); text-align: center; font-size: 1.15rem; }
+        
+        .pronoun { width: 50px; color: #888; font-size: 0.75rem; background: rgba(0,0,0,0.02); }
+        .meaning-col { font-family: 'Manjari'; font-size: 0.75rem; background: rgba(255, 255, 0, 0.05); color: var(--text); }
+
+        .root-tag { padding: 4px 10px; background: var(--primary); color: white; border-radius: 5px; margin: 2px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="top-bar">
+            <h2>Sarf Master Pro</h2>
+            <div class="mode-toggle" onclick="document.body.classList.toggle('dark-mode')">🌓 Mode</div>
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="verbIn" placeholder="ക്രിയ (eg: كتب)" maxlength="3">
+            <select id="vowelIn">
+                <option value="ُ">ـُ (Damma)</option>
+                <option value="ِ">ـِ (Kasra)</option>
+                <option value="َ">ـَ (Fatha)</option>
+            </select>
+        </div>
+        <button class="main-btn" onclick="processAll()">സറഫാക്കുക ✨</button>
+        <div id="rootDisp" style="text-align:center; margin-top:10px;"></div>
+    </aside>
+
+    <main class="content-area">
+        <div class="card" id="c1">
+            <div class="card-header"><h3>الماضي</h3><span class="copy-btn" onclick="copyTable('t1')">Copy</span></div>
+            <table id="t1"></table>
+        </div>
+        <div class="card" id="c2">
+            <div class="card-header"><h3>المضارع</h3><span class="copy-btn" onclick="copyTable('t2')">Copy</span></div>
+            <table id="t2"></table>
+        </div>
+        <div class="card" id="c3" style="border-right-color: var(--accent);">
+            <div class="card-header"><h3>الأمر</h3><span class="copy-btn" onclick="copyTable('t3')">Copy</span></div>
+            <table id="t3"></table>
+        </div>
+        <div class="card" id="c5" style="border-right-color: var(--purple);">
+            <div class="card-header"><h3>الثقيلة</h3><span class="copy-btn" onclick="copyTable('t5')">Copy</span></div>
+            <table id="t5"></table>
+        </div>
+    </main>
+
+<script>
+    function copyTable(id) {
+        let text = "";
+        document.getElementById(id).querySelectorAll('tr').forEach(tr => {
+            text += Array.from(tr.cells).map(td => td.innerText).join(" | ") + "\n";
+        });
+        navigator.clipboard.writeText(text);
+        alert("പകർത്തി! (Copied)");
+    }
+
+    function processAll() {
+        const raw = document.getElementById('verbIn').value.trim();
+        const v = document.getElementById('vowelIn').value;
+        const root = raw.replace(/[\u064B-\u0652]/g, "");
+
+        if (root.length !== 3) { alert("3 അക്ഷരം നൽകുക"); return; }
+
+        let f = root[0], a = root[1], l = root[2];
+        document.getElementById('rootDisp').innerHTML = `<span class="root-tag">${f}</span><span class="root-tag">${a}</span><span class="root-tag">${l}</span>`;
+
+        const pr = ["هو", "هما", "هم", "هي", "هما", "هن", "أنت", "أنتما", "أنتم", "أنتِ", "أنتما", "أنتن", "أنا", "نحن"];
+        const mMean = ["അവൻ", "അവർ2", "അവർ", "അവൾ", "അവർ2(f)", "അവർ(f)", "നീ", "നിങ്ങൾ2", "നിങ്ങൾ", "നീ(f)", "നിങ്ങൾ2(f)", "നിങ്ങൾ(f)", "ഞാൻ", "ഞങ്ങൾ"];
+        
+        let mH = "", muH = "", t5H = "";
+        for(let i=0; i<14; i++) {
+            let mWord = (a === 'ا' && i>5) ? (f+"ُ"+l) : (f+"َ"+a+"َ"+l);
+            let muPrefix = (i<6?"يَ":i<12?"تَ":i==12?"أَ":"نَ");
+            let muWord = (f === 'و') ? (muPrefix+a+v+l) : (muPrefix+f+"ْ"+a+v+l);
+            let thaqilah = ([1,4,7,10].includes(i)) ? muWord+"َانِّ" : muWord+"َنَّ";
+
+            mH += `<tr><td class="pronoun">${pr[i]}</td><td>${mWord}</td><td class="meaning-col">${mMean[i]} ചെയ്തു</td></tr>`;
+            muH += `<tr><td class="pronoun">${pr[i]}</td><td>${muWord}</td><td class="meaning-col">${mMean[i]} ചെയ്യുന്നു</td></tr>`;
+            t5H += `<tr><td class="pronoun">${pr[i]}</td><td>${thaqilah}</td><td class="meaning-col">തീർച്ചയായും</td></tr>`;
+        }
+
+        let aH = "";
+        let amrStart = (v === "ُ") ? "اُ" : "اِ";
+        let baseAmr = (f === 'و') ? (a+v+l) : (f+"ْ"+a+v+l);
+        ["ْ", "َا", "ُوا", "ِي", "َا", "ْنَ"].forEach((s, i) => {
+            aH += `<tr><td class="pronoun">നീ...</td><td>${amrStart}${baseAmr}${s}</td><td class="meaning-col">ചെയ്യുക</td></tr>`;
+        });
+
+        document.getElementById('t1').innerHTML = mH; 
+        document.getElementById('t2').innerHTML = muH;
+        document.getElementById('t3').innerHTML = aH; 
+        document.getElementById('t5').innerHTML = t5H;
+        document.querySelectorAll('.card').forEach(c => c.style.display = 'block');
+    }
+</script>
+</body>
+</html>
